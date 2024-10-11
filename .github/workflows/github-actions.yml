@@ -1,0 +1,16 @@
+name: Compile Markdown
+on: [push]
+jobs:
+  Build-for-jammy:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install Dependency
+        run: |
+          apt update
+          apt install build-essential curl wget git cmake -y
+          apt install g++-aarch64-linux-gnu gcc-aarch64-linux-gnu -y
+          wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
+          tar -zxvf ./v3.5.3.tar.gz
+          
+
+          
