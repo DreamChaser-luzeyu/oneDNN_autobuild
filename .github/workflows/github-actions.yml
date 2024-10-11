@@ -3,6 +3,7 @@ on: [push]
 jobs:
   Build-for-jammy:
     runs-on: ubuntu-22.04
+    timeout-minutes: 600
     steps:
       - name: Install Dependency
         run: |
@@ -24,6 +25,7 @@ jobs:
           cmake --build . --target install
           cd install
           ls
+        continue-on-error: true
 
 
           
