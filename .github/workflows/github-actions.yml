@@ -12,6 +12,17 @@ jobs:
           wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
           tar -zxvf ./v3.5.3.tar.gz
           cd oneDNN-*
+      - name: Build for x86_64
+        run: |
+          ls
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux
+          make -j
+          mkdir install
+          cmake --build . --target install
+          cd install
+          ls
 
 
           
