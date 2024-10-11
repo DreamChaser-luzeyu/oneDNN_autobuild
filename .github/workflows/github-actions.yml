@@ -15,6 +15,7 @@ jobs:
       - name: Build for x86_64
         run: |
           ls
+          cd oneDNN-*
           mkdir build
           cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux
