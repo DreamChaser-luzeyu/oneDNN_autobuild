@@ -3,7 +3,9 @@ on: [push]
 jobs:
   Build-for-jammy:
     runs-on: ubuntu-22.04
-    timeout-minutes: 600
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
     steps:
       - name: Install Dependency
         run: |
