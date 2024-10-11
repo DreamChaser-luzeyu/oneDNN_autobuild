@@ -3,7 +3,7 @@ on: [push]
 jobs:
   Build-for-jammy:
     runs-on: ubuntu-22.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
     steps:
@@ -22,7 +22,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux
-          make -j16
+          make -j40
           mkdir install
           cmake --build . --target install
           cd install
