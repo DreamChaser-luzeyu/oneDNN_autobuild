@@ -22,7 +22,7 @@ jobs:
           mkdir build
           cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux
-          make -j56
+          make -j128
           mkdir install
           cmake --build . --target install
           cd install
