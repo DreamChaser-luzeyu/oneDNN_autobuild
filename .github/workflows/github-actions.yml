@@ -15,7 +15,10 @@ jobs:
           wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
           tar -zxvf ./v3.5.3.tar.gz
           cd oneDNN-*
-
+      - name: Build for x86_64
+        run: |
+          ls
+          cd oneDNN-*
           mkdir build
           cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux
@@ -24,7 +27,20 @@ jobs:
           cmake --build . --target install
           cd install
           ls
+          cd ..
+          tar -zcf ./build_jammy_amd64.tar.gz ./install
+          echo "JAMMY_AMD64_RELEASE=$(pwd)/build_jammy_amd64.tar.gz" >> $GITHUB_ENV
         continue-on-error: true
+      - name: Release config
+        run: |
+          echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.JAMMY_AMD64_RELEASE }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          token: ${{ secrets.REPO_TOKEN }}        
 
 
           
