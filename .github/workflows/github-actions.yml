@@ -1,7 +1,7 @@
 name: Build oneDNN libs
 on: [push]
 jobs:
-  Build-for-jammy:
+  Build-for-jammy-AMD64:
     runs-on: ubuntu-22.04
     timeout-minutes: 40
     strategy:
@@ -11,7 +11,6 @@ jobs:
         run: |
           sudo apt update
           sudo apt install build-essential curl wget git cmake -y
-          sudo apt install g++-aarch64-linux-gnu gcc-aarch64-linux-gnu -y
           wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
           tar -zxvf ./v3.5.3.tar.gz
           cd oneDNN-*
@@ -39,6 +38,56 @@ jobs:
         with:
           files: |
             ${{ env.JAMMY_AMD64_RELEASE }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          token: ${{ secrets.REPO_TOKEN }}        
+
+  Build-for-jammy-ARM64NoSVE:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Install Dependency
+        run: |
+          sudo apt update
+          sudo apt install build-essential curl wget git cmake -y
+          sudo apt install g++-aarch64-linux-gnu gcc-aarch64-linux-gnu -y
+          wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
+          tar -zxvf ./v3.5.3.tar.gz
+          cd oneDNN-*
+      - name: Build for ARM64_NoSVE
+        run: |
+          ls
+          cd oneDNN-*
+          rm -rf ./build
+          mkdir build
+          cd build
+          cmake .. \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
+            -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
+            -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
+            -DDNNL_TARGET_ARCH="AARCH64" \
+            -DCMAKE_C_FLAGS="-O3 -march=armv8.6-a" \
+            -DCMAKE_CXX_FLAGS="-O3 -march=armv8.6-a" \
+            -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
+          make -j -l 2.5
+          mkdir install
+          cmake --build . --target install
+          cd install
+          ls
+          cd ..
+          tar -zcf ./build_jammy_arm64nosve.tar.gz ./install
+          echo "JAMMY_ARM64NOSVE_RELEASE=$(pwd)/build_jammy_arm64nosve.tar.gz" >> $GITHUB_ENV
+        continue-on-error: true
+      - name: Release config
+        run: |
+          echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.JAMMY_ARM64NOSVE_RELEASE }}
           tag_name: ${{ env.RELEASE_TAG }}
           token: ${{ secrets.REPO_TOKEN }}        
 
