@@ -218,7 +218,7 @@ jobs:
           ls
           cd ..
           tar -zcf ./build_noble_arm64nosve.tar.gz ./install
-          echo "NOBLE_ARM64NOSVE_RELEASE=$(pwd)/build_NOBLE_arm64nosve.tar.gz" >> $GITHUB_ENV
+          echo "NOBLE_ARM64NOSVE_RELEASE=$(pwd)/build_noble_arm64nosve.tar.gz" >> $GITHUB_ENV
         continue-on-error: true
       - name: Release config
         run: |
