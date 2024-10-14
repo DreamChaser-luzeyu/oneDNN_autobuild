@@ -308,8 +308,8 @@ jobs:
           cd build
           cmake .. \
             -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
-            -DCMAKE_C_COMPILER="$(GCC_PATH)/aarch64-none-linux-gnu-gcc" \
-            -DCMAKE_CXX_COMPILER="$(GCC_PATH)/aarch64-none-linux-gnu-g++" \
+            -DCMAKE_C_COMPILER="aarch64-none-linux-gnu-gcc" \
+            -DCMAKE_CXX_COMPILER="aarch64-none-linux-gnu-g++" \
             -DDNNL_TARGET_ARCH="AARCH64" \
             -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
             -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
