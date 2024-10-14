@@ -67,8 +67,8 @@ jobs:
             -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
             -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
             -DDNNL_TARGET_ARCH="AARCH64" \
-            -DCMAKE_C_FLAGS="-O3 -march=armv8.6-a" \
-            -DCMAKE_CXX_FLAGS="-O3 -march=armv8.6-a" \
+            -DCMAKE_C_FLAGS="-O3 -march=+fp" \
+            -DCMAKE_CXX_FLAGS="-O3 -march=+fp" \
             -DCMAKE_SYSTEM_NAME=Linux \
             -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
           make -j -l 2.5
@@ -117,8 +117,8 @@ jobs:
             -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
             -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
             -DDNNL_TARGET_ARCH="AARCH64" \
-            -DCMAKE_C_FLAGS="-O3 -march=armv8.6-a+sve" \
-            -DCMAKE_CXX_FLAGS="-O3 -march=armv8.6-a+sve" \
+            -DCMAKE_C_FLAGS="-O3 -march=+fp+sve" \
+            -DCMAKE_CXX_FLAGS="-O3 -march=+fp+sve" \
             -DCMAKE_SYSTEM_NAME=Linux \
             -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
           make -j -l 2.5
@@ -207,8 +207,8 @@ jobs:
             -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
             -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
             -DDNNL_TARGET_ARCH="AARCH64" \
-            -DCMAKE_C_FLAGS="-O3 -march=armv8.6-a" \
-            -DCMAKE_CXX_FLAGS="-O3 -march=armv8.6-a" \
+            -DCMAKE_C_FLAGS="-O3 -march=+fp" \
+            -DCMAKE_CXX_FLAGS="-O3 -march=+fp" \
             -DCMAKE_SYSTEM_NAME=Linux \
             -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
           make -j -l 2.5
@@ -257,8 +257,8 @@ jobs:
             -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
             -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
             -DDNNL_TARGET_ARCH="AARCH64" \
-            -DCMAKE_C_FLAGS="-O3 -march=armv8.6-a+sve" \
-            -DCMAKE_CXX_FLAGS="-O3 -march=armv8.6-a+sve" \
+            -DCMAKE_C_FLAGS="-O3 -march=+fp+sve" \
+            -DCMAKE_CXX_FLAGS="-O3 -march=+fp+sve" \
             -DCMAKE_SYSTEM_NAME=Linux \
             -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
           make -j -l 2.5
