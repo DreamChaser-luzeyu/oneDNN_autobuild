@@ -303,10 +303,6 @@ jobs:
           wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
           tar -zxvf ./v3.5.3.tar.gz
           cd oneDNN-*
-      - name: Build for ARM64_SVE
-        run: |
-          ls
-          cd oneDNN-*
           rm -rf ./build
           mkdir build
           cd build
