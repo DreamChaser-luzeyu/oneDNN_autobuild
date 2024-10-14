@@ -297,6 +297,7 @@ jobs:
           cd bin
           export PATH=$PATH:$(pwd)
           echo $PATH
+          cd ../..
           which aarch64-none-linux-gnu-gcc
           wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
           tar -zxvf ./v3.5.3.tar.gz
