@@ -296,6 +296,7 @@ jobs:
           cd ./arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu
           cd bin
           export PATH=$PATH:$(pwd)
+          export GCC_PATH=$(pwd)
           echo $PATH
           cd ../..
           which aarch64-none-linux-gnu-gcc
@@ -311,8 +312,8 @@ jobs:
           cd build
           cmake .. \
             -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
-            -DCMAKE_C_COMPILER="aarch64-none-linux-gnu-gcc" \
-            -DCMAKE_CXX_COMPILER="aarch64-none-linux-gnu-g++" \
+            -DCMAKE_C_COMPILER="$(GCC_PATH)/aarch64-none-linux-gnu-gcc" \
+            -DCMAKE_CXX_COMPILER="$(GCC_PATH)/aarch64-none-linux-gnu-g++" \
             -DDNNL_TARGET_ARCH="AARCH64" \
             -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
             -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
