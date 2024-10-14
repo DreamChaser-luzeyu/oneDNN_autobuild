@@ -117,8 +117,8 @@ jobs:
             -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
             -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
             -DDNNL_TARGET_ARCH="AARCH64" \
-            -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve+nosimd" \
-            -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve+nosimd" \
+            -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
+            -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
             -DCMAKE_SYSTEM_NAME=Linux \
             -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
           make -j -l 2.5
@@ -257,8 +257,8 @@ jobs:
             -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
             -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
             -DDNNL_TARGET_ARCH="AARCH64" \
-            -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve+nosimd" \
-            -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve+nosimd" \
+            -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
+            -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
             -DCMAKE_SYSTEM_NAME=Linux \
             -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
           make -j -l 2.5
