@@ -280,3 +280,59 @@ jobs:
             ${{ env.NOBLE_ARM64SVE_RELEASE }}
           tag_name: ${{ env.RELEASE_TAG }}
           token: ${{ secrets.REPO_TOKEN }}
+
+  Build-for-noble-ARM64SVE-GCC13:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Install Dependency
+        run: |
+          sudo apt update
+          sudo apt install build-essential curl wget git cmake -y
+          wget https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          tar -zxvf ./arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          cd ./arm-gnu-toolchain-*
+          cd bin
+          export PATH=$PATH:$(pwd)
+          echo $PATH
+          which aarch64-none-linux-gnu-gcc
+          wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
+          tar -zxvf ./v3.5.3.tar.gz
+          cd oneDNN-*
+      - name: Build for ARM64_SVE
+        run: |
+          ls
+          cd oneDNN-*
+          rm -rf ./build
+          mkdir build
+          cd build
+          cmake .. \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
+            -DCMAKE_C_COMPILER="aarch64-none-linux-gnu-gcc" \
+            -DCMAKE_CXX_COMPILER="aarch64-none-linux-gnu-g++" \
+            -DDNNL_TARGET_ARCH="AARCH64" \
+            -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
+            -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
+            -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
+          make -j -l 2.5
+          mkdir install
+          cmake --build . --target install
+          cd install
+          ls
+          cd ..
+          tar -zcf ./build_noble_arm64sve_gcc13.tar.gz ./install
+          echo "NOBLE_ARM64SVE_GCC13_RELEASE=$(pwd)/build_noble_arm64sve_gcc13.tar.gz" >> $GITHUB_ENV
+        continue-on-error: true
+      - name: Release config
+        run: |
+          echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.NOBLE_ARM64SVE_GCC13_RELEASE }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          token: ${{ secrets.REPO_TOKEN }}
