@@ -248,12 +248,15 @@ jobs:
           wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
           tar -zxvf ./v3.5.3.tar.gz
           cd oneDNN-*
-      - name: Build for ARM64_NoSVE
+          sed -i "s/\/\/ descending order due to mayiuse check/return isa_info_t(isa_undef)\;/g" ./src/cpu/aarch64/cpu_isa_traits.cpp
+          cat ./src/cpu/aarch64/cpu_isa_traits.cpp
+          echo "------------------------------"
+          echo "------------------------------"
+          echo "------------------------------"
+      - name: Build for ARM64_ForceNoSVE
         run: |
           ls
           cd oneDNN-*
-          sed -i "s/\/\/ descending order due to mayiuse check/return isa_info_t(isa_undef)\;/g" ./src/cpu/aarch64/cpu_isa_traits.cpp
-          cat ./src/cpu/aarch64/cpu_isa_traits.cpp
           rm -rf ./build
           mkdir build
           cd build
