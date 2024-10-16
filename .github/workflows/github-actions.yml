@@ -20,7 +20,7 @@ jobs:
           cd oneDNN-*
           mkdir build
           cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux
+          cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_BUILD_TYPE=RelWithDebInfo
           make -j -l 2.5
           mkdir install
           cmake --build . --target install
@@ -70,6 +70,7 @@ jobs:
             -DCMAKE_C_FLAGS="-O3 -march=armv8-a+nosimd" \
             -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+nosimd" \
             -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
           make -j -l 2.5
           mkdir install
@@ -120,6 +121,7 @@ jobs:
             -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
             -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
             -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
           make -j -l 2.5
           mkdir install
@@ -160,7 +162,7 @@ jobs:
           cd oneDNN-*
           mkdir build
           cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux
+          cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_BUILD_TYPE=RelWithDebInfo
           make -j -l 2.5
           mkdir install
           cmake --build . --target install
@@ -210,6 +212,7 @@ jobs:
             -DCMAKE_C_FLAGS="-O3 -march=armv8-a+nosimd" \
             -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+nosimd" \
             -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
           make -j -l 2.5
           mkdir install
@@ -228,6 +231,59 @@ jobs:
         with:
           files: |
             ${{ env.NOBLE_ARM64NOSVE_RELEASE }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          token: ${{ secrets.REPO_TOKEN }}
+
+  Build-for-noble-ARM64ForceNoSVE:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Install Dependency
+        run: |
+          sudo apt update
+          sudo apt install build-essential curl wget git cmake -y
+          sudo apt install g++-aarch64-linux-gnu gcc-aarch64-linux-gnu -y
+          wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
+          tar -zxvf ./v3.5.3.tar.gz
+          cd oneDNN-*
+      - name: Build for ARM64_NoSVE
+        run: |
+          ls
+          cd oneDNN-*
+          sed -i "s/\/\/ descending order due to mayiuse check/return isa_info_t(isa_undef)\;/g" ./src/cpu/aarch64/cpu_isa_traits.cpp
+          cat ./src/cpu/aarch64/cpu_isa_traits.cpp
+          rm -rf ./build
+          mkdir build
+          cd build
+          cmake .. \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
+            -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
+            -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
+            -DDNNL_TARGET_ARCH="AARCH64" \
+            -DCMAKE_C_FLAGS="-O3 -march=armv8-a+nosimd" \
+            -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+nosimd" \
+            -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
+          make -j -l 2.5
+          mkdir install
+          cmake --build . --target install
+          cd install
+          ls
+          cd ..
+          tar -zcf ./build_noble_arm64forcenosve.tar.gz ./install
+          echo "NOBLE_ARM64FORCENOSVE_RELEASE=$(pwd)/build_noble_arm64forcenosve.tar.gz" >> $GITHUB_ENV
+        continue-on-error: true
+      - name: Release config
+        run: |
+          echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.NOBLE_ARM64FORCENOSVE_RELEASE }}
           tag_name: ${{ env.RELEASE_TAG }}
           token: ${{ secrets.REPO_TOKEN }}
 
@@ -260,6 +316,7 @@ jobs:
             -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
             -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
             -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
           make -j -l 2.5
           mkdir install
@@ -314,6 +371,7 @@ jobs:
             -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
             -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
             -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
           make -j -l 2.5
           mkdir install
