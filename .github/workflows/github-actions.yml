@@ -255,7 +255,6 @@ jobs:
           echo "------------------------------"
       - name: Build for ARM64_ForceNoSVE
         run: |
-          ls
           cd oneDNN-*
           rm -rf ./build
           mkdir build
