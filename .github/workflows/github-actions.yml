@@ -1,47 +1,101 @@
 name: Build oneDNN libs
-on: [push]
+on: 
+  push:
+    branches:
+      - 'master'
 jobs:
-  Build-for-jammy-AMD64:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 40
-    strategy:
-      fail-fast: false
-    steps:
-      - name: Install Dependency
-        run: |
-          sudo apt update
-          sudo apt install build-essential curl wget git cmake -y
-          wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
-          tar -zxvf ./v3.5.3.tar.gz
-          cd oneDNN-*
-      - name: Build for x86_64
-        run: |
-          ls
-          cd oneDNN-*
-          mkdir build
-          cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_BUILD_TYPE=RelWithDebInfo
-          make -j -l 2.5
-          mkdir install
-          cmake --build . --target install
-          cd install
-          ls
-          cd ..
-          tar -zcf ./build_jammy_amd64.tar.gz ./install
-          echo "JAMMY_AMD64_RELEASE=$(pwd)/build_jammy_amd64.tar.gz" >> $GITHUB_ENV
-        continue-on-error: true
-      - name: Release config
-        run: |
-          echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            ${{ env.JAMMY_AMD64_RELEASE }}
-          tag_name: ${{ env.RELEASE_TAG }}
-          token: ${{ secrets.REPO_TOKEN }}        
+  # Build-for-jammy-AMD64:
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 40
+  #   strategy:
+  #     fail-fast: false
+  #   steps:
+  #     - name: Install Dependency
+  #       run: |
+  #         sudo apt update
+  #         sudo apt install build-essential curl wget git cmake -y
+  #         wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
+  #         tar -zxvf ./v3.5.3.tar.gz
+  #         cd oneDNN-*
+  #     - name: Build for x86_64
+  #       run: |
+  #         ls
+  #         cd oneDNN-*
+  #         mkdir build
+  #         cd build
+  #         cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  #         make -j -l 2.5
+  #         mkdir install
+  #         cmake --build . --target install
+  #         cd install
+  #         ls
+  #         cd ..
+  #         tar -zcf ./build_jammy_amd64.tar.gz ./install
+  #         echo "JAMMY_AMD64_RELEASE=$(pwd)/build_jammy_amd64.tar.gz" >> $GITHUB_ENV
+  #       continue-on-error: true
+  #     - name: Release config
+  #       run: |
+  #         echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
+  #     - name: Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: |
+  #           ${{ env.JAMMY_AMD64_RELEASE }}
+  #         tag_name: ${{ env.RELEASE_TAG }}
+  #         token: ${{ secrets.REPO_TOKEN }}        
 
-  Build-for-jammy-ARM64NoSVE:
+  # Build-for-jammy-ARM64NoSVE:
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 40
+  #   strategy:
+  #     fail-fast: false
+  #   steps:
+  #     - name: Install Dependency
+  #       run: |
+  #         sudo apt update
+  #         sudo apt install build-essential curl wget git cmake -y
+  #         sudo apt install g++-aarch64-linux-gnu gcc-aarch64-linux-gnu -y
+  #         wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
+  #         tar -zxvf ./v3.5.3.tar.gz
+  #         cd oneDNN-*
+  #     - name: Build for ARM64_NoSVE
+  #       run: |
+  #         ls
+  #         cd oneDNN-*
+  #         rm -rf ./build
+  #         mkdir build
+  #         cd build
+  #         cmake .. \
+  #           -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
+  #           -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
+  #           -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
+  #           -DDNNL_TARGET_ARCH="AARCH64" \
+  #           -DCMAKE_C_FLAGS="-O3 -march=armv8-a+nosimd" \
+  #           -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+nosimd" \
+  #           -DCMAKE_SYSTEM_NAME=Linux \
+  #           -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  #           -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
+  #         make -j -l 2.5
+  #         mkdir install
+  #         cmake --build . --target install
+  #         cd install
+  #         ls
+  #         cd ..
+  #         tar -zcf ./build_jammy_arm64nosve.tar.gz ./install
+  #         echo "JAMMY_ARM64NOSVE_RELEASE=$(pwd)/build_jammy_arm64nosve.tar.gz" >> $GITHUB_ENV
+  #       continue-on-error: true
+  #     - name: Release config
+  #       run: |
+  #         echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
+  #     - name: Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: |
+  #           ${{ env.JAMMY_ARM64NOSVE_RELEASE }}
+  #         tag_name: ${{ env.RELEASE_TAG }}
+  #         token: ${{ secrets.REPO_TOKEN }}
+
+  Build-for-jammy-ARM64ForceNoSIMD:
     runs-on: ubuntu-22.04
     timeout-minutes: 40
     strategy:
@@ -55,9 +109,13 @@ jobs:
           wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
           tar -zxvf ./v3.5.3.tar.gz
           cd oneDNN-*
-      - name: Build for ARM64_NoSVE
+          sed -i "s/\/\/ descending order due to mayiuse check/return isa_info_t(isa_undef)\;/g" ./src/cpu/aarch64/cpu_isa_traits.cpp
+          cat ./src/cpu/aarch64/cpu_isa_traits.cpp
+          echo "------------------------------"
+          echo "------------------------------"
+          echo "------------------------------"
+      - name: Build for ARM64_ForceNoSIMD
         run: |
-          ls
           cd oneDNN-*
           rm -rf ./build
           mkdir build
@@ -78,8 +136,8 @@ jobs:
           cd install
           ls
           cd ..
-          tar -zcf ./build_jammy_arm64nosve.tar.gz ./install
-          echo "JAMMY_ARM64NOSVE_RELEASE=$(pwd)/build_jammy_arm64nosve.tar.gz" >> $GITHUB_ENV
+          tar -zcf ./build_jammy_arm64forcenosimd.tar.gz ./install
+          echo "JAMMY_ARM64FORCENOSIMD_RELEASE=$(pwd)/build_jammy_arm64forcenosimd.tar.gz" >> $GITHUB_ENV
         continue-on-error: true
       - name: Release config
         run: |
@@ -88,11 +146,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ env.JAMMY_ARM64NOSVE_RELEASE }}
+            ${{ env.JAMMY_ARM64FORCENOSIMD_RELEASE }}
           tag_name: ${{ env.RELEASE_TAG }}
           token: ${{ secrets.REPO_TOKEN }}
 
-  Build-for-jammy-ARM64SVE:
+  Build-for-jammy-ARM64ForceNoSVE:
     runs-on: ubuntu-22.04
     timeout-minutes: 40
     strategy:
@@ -106,100 +164,13 @@ jobs:
           wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
           tar -zxvf ./v3.5.3.tar.gz
           cd oneDNN-*
-      - name: Build for ARM64_SVE
+          sed -i "s/\/\/ descending order due to mayiuse check/return isa_info_t(asimd)\;/g" ./src/cpu/aarch64/cpu_isa_traits.cpp
+          cat ./src/cpu/aarch64/cpu_isa_traits.cpp
+          echo "------------------------------"
+          echo "------------------------------"
+          echo "------------------------------"
+      - name: Build for ARM64_ForceNoSIMD
         run: |
-          ls
-          cd oneDNN-*
-          rm -rf ./build
-          mkdir build
-          cd build
-          cmake .. \
-            -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
-            -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
-            -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
-            -DDNNL_TARGET_ARCH="AARCH64" \
-            -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
-            -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
-            -DCMAKE_SYSTEM_NAME=Linux \
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-            -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
-          make -j -l 2.5
-          mkdir install
-          cmake --build . --target install
-          cd install
-          ls
-          cd ..
-          tar -zcf ./build_jammy_arm64sve.tar.gz ./install
-          echo "JAMMY_ARM64SVE_RELEASE=$(pwd)/build_jammy_arm64sve.tar.gz" >> $GITHUB_ENV
-        continue-on-error: true
-      - name: Release config
-        run: |
-          echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            ${{ env.JAMMY_ARM64SVE_RELEASE }}
-          tag_name: ${{ env.RELEASE_TAG }}
-          token: ${{ secrets.REPO_TOKEN }}
-
-  Build-for-noble-AMD64:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 40
-    strategy:
-      fail-fast: false
-    steps:
-      - name: Install Dependency
-        run: |
-          sudo apt update
-          sudo apt install build-essential curl wget git cmake -y
-          wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
-          tar -zxvf ./v3.5.3.tar.gz
-          cd oneDNN-*
-      - name: Build for x86_64
-        run: |
-          ls
-          cd oneDNN-*
-          mkdir build
-          cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_BUILD_TYPE=RelWithDebInfo
-          make -j -l 2.5
-          mkdir install
-          cmake --build . --target install
-          cd install
-          ls
-          cd ..
-          tar -zcf ./build_noble_amd64.tar.gz ./install
-          echo "NOBLE_AMD64_RELEASE=$(pwd)/build_noble_amd64.tar.gz" >> $GITHUB_ENV
-        continue-on-error: true
-      - name: Release config
-        run: |
-          echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            ${{ env.NOBLE_AMD64_RELEASE }}
-          tag_name: ${{ env.RELEASE_TAG }}
-          token: ${{ secrets.REPO_TOKEN }}
-
-  Build-for-noble-ARM64NoSVE:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 40
-    strategy:
-      fail-fast: false
-    steps:
-      - name: Install Dependency
-        run: |
-          sudo apt update
-          sudo apt install build-essential curl wget git cmake -y
-          sudo apt install g++-aarch64-linux-gnu gcc-aarch64-linux-gnu -y
-          wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
-          tar -zxvf ./v3.5.3.tar.gz
-          cd oneDNN-*
-      - name: Build for ARM64_NoSVE
-        run: |
-          ls
           cd oneDNN-*
           rm -rf ./build
           mkdir build
@@ -220,8 +191,8 @@ jobs:
           cd install
           ls
           cd ..
-          tar -zcf ./build_noble_arm64nosve.tar.gz ./install
-          echo "NOBLE_ARM64NOSVE_RELEASE=$(pwd)/build_noble_arm64nosve.tar.gz" >> $GITHUB_ENV
+          tar -zcf ./build_jammy_arm64forcenosve.tar.gz ./install
+          echo "JAMMY_ARM64FORCENOSVE_RELEASE=$(pwd)/build_jammy_arm64forcenosve.tar.gz" >> $GITHUB_ENV
         continue-on-error: true
       - name: Release config
         run: |
@@ -230,7 +201,204 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ env.NOBLE_ARM64NOSVE_RELEASE }}
+            ${{ env.JAMMY_ARM64FORCENOSVE_RELEASE }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          token: ${{ secrets.REPO_TOKEN }}
+        
+  # Build-for-jammy-ARM64SVE:
+  #   runs-on: ubuntu-22.04
+  #   timeout-minutes: 40
+  #   strategy:
+  #     fail-fast: false
+  #   steps:
+  #     - name: Install Dependency
+  #       run: |
+  #         sudo apt update
+  #         sudo apt install build-essential curl wget git cmake -y
+  #         sudo apt install g++-aarch64-linux-gnu gcc-aarch64-linux-gnu -y
+  #         wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
+  #         tar -zxvf ./v3.5.3.tar.gz
+  #         cd oneDNN-*
+  #     - name: Build for ARM64_SVE
+  #       run: |
+  #         ls
+  #         cd oneDNN-*
+  #         rm -rf ./build
+  #         mkdir build
+  #         cd build
+  #         cmake .. \
+  #           -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
+  #           -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
+  #           -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
+  #           -DDNNL_TARGET_ARCH="AARCH64" \
+  #           -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
+  #           -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
+  #           -DCMAKE_SYSTEM_NAME=Linux \
+  #           -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  #           -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
+  #         make -j -l 2.5
+  #         mkdir install
+  #         cmake --build . --target install
+  #         cd install
+  #         ls
+  #         cd ..
+  #         tar -zcf ./build_jammy_arm64sve.tar.gz ./install
+  #         echo "JAMMY_ARM64SVE_RELEASE=$(pwd)/build_jammy_arm64sve.tar.gz" >> $GITHUB_ENV
+  #       continue-on-error: true
+  #     - name: Release config
+  #       run: |
+  #         echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
+  #     - name: Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: |
+  #           ${{ env.JAMMY_ARM64SVE_RELEASE }}
+  #         tag_name: ${{ env.RELEASE_TAG }}
+  #         token: ${{ secrets.REPO_TOKEN }}
+
+  # Build-for-noble-AMD64:
+  #   runs-on: ubuntu-24.04
+  #   timeout-minutes: 40
+  #   strategy:
+  #     fail-fast: false
+  #   steps:
+  #     - name: Install Dependency
+  #       run: |
+  #         sudo apt update
+  #         sudo apt install build-essential curl wget git cmake -y
+  #         wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
+  #         tar -zxvf ./v3.5.3.tar.gz
+  #         cd oneDNN-*
+  #     - name: Build for x86_64
+  #       run: |
+  #         ls
+  #         cd oneDNN-*
+  #         mkdir build
+  #         cd build
+  #         cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  #         make -j -l 2.5
+  #         mkdir install
+  #         cmake --build . --target install
+  #         cd install
+  #         ls
+  #         cd ..
+  #         tar -zcf ./build_noble_amd64.tar.gz ./install
+  #         echo "NOBLE_AMD64_RELEASE=$(pwd)/build_noble_amd64.tar.gz" >> $GITHUB_ENV
+  #       continue-on-error: true
+  #     - name: Release config
+  #       run: |
+  #         echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
+  #     - name: Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: |
+  #           ${{ env.NOBLE_AMD64_RELEASE }}
+  #         tag_name: ${{ env.RELEASE_TAG }}
+  #         token: ${{ secrets.REPO_TOKEN }}
+
+  # Build-for-noble-ARM64NoSVE:
+  #   runs-on: ubuntu-24.04
+  #   timeout-minutes: 40
+  #   strategy:
+  #     fail-fast: false
+  #   steps:
+  #     - name: Install Dependency
+  #       run: |
+  #         sudo apt update
+  #         sudo apt install build-essential curl wget git cmake -y
+  #         sudo apt install g++-aarch64-linux-gnu gcc-aarch64-linux-gnu -y
+  #         wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
+  #         tar -zxvf ./v3.5.3.tar.gz
+  #         cd oneDNN-*
+  #     - name: Build for ARM64_NoSVE
+  #       run: |
+  #         ls
+  #         cd oneDNN-*
+  #         rm -rf ./build
+  #         mkdir build
+  #         cd build
+  #         cmake .. \
+  #           -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
+  #           -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
+  #           -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
+  #           -DDNNL_TARGET_ARCH="AARCH64" \
+  #           -DCMAKE_C_FLAGS="-O3 -march=armv8-a+nosimd" \
+  #           -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+nosimd" \
+  #           -DCMAKE_SYSTEM_NAME=Linux \
+  #           -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  #           -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
+  #         make -j -l 2.5
+  #         mkdir install
+  #         cmake --build . --target install
+  #         cd install
+  #         ls
+  #         cd ..
+  #         tar -zcf ./build_noble_arm64nosve.tar.gz ./install
+  #         echo "NOBLE_ARM64NOSVE_RELEASE=$(pwd)/build_noble_arm64nosve.tar.gz" >> $GITHUB_ENV
+  #       continue-on-error: true
+  #     - name: Release config
+  #       run: |
+  #         echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
+  #     - name: Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: |
+  #           ${{ env.NOBLE_ARM64NOSVE_RELEASE }}
+  #         tag_name: ${{ env.RELEASE_TAG }}
+  #         token: ${{ secrets.REPO_TOKEN }}
+
+  Build-for-noble-ARM64ForceNoSIMD:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Install Dependency
+        run: |
+          sudo apt update
+          sudo apt install build-essential curl wget git cmake -y
+          sudo apt install g++-aarch64-linux-gnu gcc-aarch64-linux-gnu -y
+          wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
+          tar -zxvf ./v3.5.3.tar.gz
+          cd oneDNN-*
+          sed -i "s/\/\/ descending order due to mayiuse check/return isa_info_t(isa_undef)\;/g" ./src/cpu/aarch64/cpu_isa_traits.cpp
+          cat ./src/cpu/aarch64/cpu_isa_traits.cpp
+          echo "------------------------------"
+          echo "------------------------------"
+          echo "------------------------------"
+      - name: Build for ARM64_ForceNoSIMD
+        run: |
+          cd oneDNN-*
+          rm -rf ./build
+          mkdir build
+          cd build
+          cmake .. \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
+            -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
+            -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
+            -DDNNL_TARGET_ARCH="AARCH64" \
+            -DCMAKE_C_FLAGS="-O3 -march=armv8-a+nosimd" \
+            -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+nosimd" \
+            -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
+          make -j -l 2.5
+          mkdir install
+          cmake --build . --target install
+          cd install
+          ls
+          cd ..
+          tar -zcf ./build_noble_arm64forcenosimd.tar.gz ./install
+          echo "NOBLE_ARM64FORCENOSIMD_RELEASE=$(pwd)/build_noble_arm64forcenosimd.tar.gz" >> $GITHUB_ENV
+        continue-on-error: true
+      - name: Release config
+        run: |
+          echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.NOBLE_ARM64FORCENOSIMD_RELEASE }}
           tag_name: ${{ env.RELEASE_TAG }}
           token: ${{ secrets.REPO_TOKEN }}
 
@@ -248,7 +416,7 @@ jobs:
           wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
           tar -zxvf ./v3.5.3.tar.gz
           cd oneDNN-*
-          sed -i "s/\/\/ descending order due to mayiuse check/return isa_info_t(isa_undef)\;/g" ./src/cpu/aarch64/cpu_isa_traits.cpp
+          sed -i "s/\/\/ descending order due to mayiuse check/return isa_info_t(asimd)\;/g" ./src/cpu/aarch64/cpu_isa_traits.cpp
           cat ./src/cpu/aarch64/cpu_isa_traits.cpp
           echo "------------------------------"
           echo "------------------------------"
@@ -288,109 +456,109 @@ jobs:
             ${{ env.NOBLE_ARM64FORCENOSVE_RELEASE }}
           tag_name: ${{ env.RELEASE_TAG }}
           token: ${{ secrets.REPO_TOKEN }}
+        
+  # Build-for-noble-ARM64SVE:
+  #   runs-on: ubuntu-24.04
+  #   timeout-minutes: 40
+  #   strategy:
+  #     fail-fast: false
+  #   steps:
+  #     - name: Install Dependency
+  #       run: |
+  #         sudo apt update
+  #         sudo apt install build-essential curl wget git cmake -y
+  #         sudo apt install g++-aarch64-linux-gnu gcc-aarch64-linux-gnu -y
+  #         wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
+  #         tar -zxvf ./v3.5.3.tar.gz
+  #         cd oneDNN-*
+  #     - name: Build for ARM64_SVE
+  #       run: |
+  #         ls
+  #         cd oneDNN-*
+  #         rm -rf ./build
+  #         mkdir build
+  #         cd build
+  #         cmake .. \
+  #           -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
+  #           -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
+  #           -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
+  #           -DDNNL_TARGET_ARCH="AARCH64" \
+  #           -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
+  #           -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
+  #           -DCMAKE_SYSTEM_NAME=Linux \
+  #           -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  #           -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
+  #         make -j -l 2.5
+  #         mkdir install
+  #         cmake --build . --target install
+  #         cd install
+  #         ls
+  #         cd ..
+  #         tar -zcf ./build_noble_arm64sve.tar.gz ./install
+  #         echo "NOBLE_ARM64SVE_RELEASE=$(pwd)/build_noble_arm64sve.tar.gz" >> $GITHUB_ENV
+  #       continue-on-error: true
+  #     - name: Release config
+  #       run: |
+  #         echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
+  #     - name: Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: |
+  #           ${{ env.NOBLE_ARM64SVE_RELEASE }}
+  #         tag_name: ${{ env.RELEASE_TAG }}
+  #         token: ${{ secrets.REPO_TOKEN }}
 
-  Build-for-noble-ARM64SVE:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 40
-    strategy:
-      fail-fast: false
-    steps:
-      - name: Install Dependency
-        run: |
-          sudo apt update
-          sudo apt install build-essential curl wget git cmake -y
-          sudo apt install g++-aarch64-linux-gnu gcc-aarch64-linux-gnu -y
-          wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
-          tar -zxvf ./v3.5.3.tar.gz
-          cd oneDNN-*
-      - name: Build for ARM64_SVE
-        run: |
-          ls
-          cd oneDNN-*
-          rm -rf ./build
-          mkdir build
-          cd build
-          cmake .. \
-            -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
-            -DCMAKE_C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc" \
-            -DCMAKE_CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++" \
-            -DDNNL_TARGET_ARCH="AARCH64" \
-            -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
-            -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
-            -DCMAKE_SYSTEM_NAME=Linux \
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-            -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
-          make -j -l 2.5
-          mkdir install
-          cmake --build . --target install
-          cd install
-          ls
-          cd ..
-          tar -zcf ./build_noble_arm64sve.tar.gz ./install
-          echo "NOBLE_ARM64SVE_RELEASE=$(pwd)/build_noble_arm64sve.tar.gz" >> $GITHUB_ENV
-        continue-on-error: true
-      - name: Release config
-        run: |
-          echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            ${{ env.NOBLE_ARM64SVE_RELEASE }}
-          tag_name: ${{ env.RELEASE_TAG }}
-          token: ${{ secrets.REPO_TOKEN }}
-
-  Build-for-noble-ARM64SVE-GCC13:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 40
-    strategy:
-      fail-fast: false
-    steps:
-      - name: Install Dependency
-        run: |
-          sudo apt update
-          sudo apt install build-essential curl wget git cmake -y
-          wget https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-          tar -xvf ./arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-          cd ./arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu
-          cd bin
-          export PATH=$PATH:$(pwd)
-          export GCC_PATH=$(pwd)
-          echo $PATH
-          cd ../..
-          which aarch64-none-linux-gnu-gcc
-          wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
-          tar -zxvf ./v3.5.3.tar.gz
-          cd oneDNN-*
-          rm -rf ./build
-          mkdir build
-          cd build
-          cmake .. \
-            -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
-            -DCMAKE_C_COMPILER="aarch64-none-linux-gnu-gcc" \
-            -DCMAKE_CXX_COMPILER="aarch64-none-linux-gnu-g++" \
-            -DDNNL_TARGET_ARCH="AARCH64" \
-            -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
-            -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
-            -DCMAKE_SYSTEM_NAME=Linux \
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-            -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
-          make -j -l 2.5
-          mkdir install
-          cmake --build . --target install
-          cd install
-          ls
-          cd ..
-          tar -zcf ./build_noble_arm64sve_gcc13.tar.gz ./install
-          echo "NOBLE_ARM64SVE_GCC13_RELEASE=$(pwd)/build_noble_arm64sve_gcc13.tar.gz" >> $GITHUB_ENV
-        continue-on-error: true
-      - name: Release config
-        run: |
-          echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            ${{ env.NOBLE_ARM64SVE_GCC13_RELEASE }}
-          tag_name: ${{ env.RELEASE_TAG }}
-          token: ${{ secrets.REPO_TOKEN }}
+  # Build-for-noble-ARM64SVE-GCC13:
+  #   runs-on: ubuntu-24.04
+  #   timeout-minutes: 40
+  #   strategy:
+  #     fail-fast: false
+  #   steps:
+  #     - name: Install Dependency
+  #       run: |
+  #         sudo apt update
+  #         sudo apt install build-essential curl wget git cmake -y
+  #         wget https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+  #         tar -xvf ./arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+  #         cd ./arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu
+  #         cd bin
+  #         export PATH=$PATH:$(pwd)
+  #         export GCC_PATH=$(pwd)
+  #         echo $PATH
+  #         cd ../..
+  #         which aarch64-none-linux-gnu-gcc
+  #         wget https://github.com/oneapi-src/oneDNN/archive/refs/tags/v3.5.3.tar.gz
+  #         tar -zxvf ./v3.5.3.tar.gz
+  #         cd oneDNN-*
+  #         rm -rf ./build
+  #         mkdir build
+  #         cd build
+  #         cmake .. \
+  #           -DCMAKE_INSTALL_PREFIX=$(pwd)/install \
+  #           -DCMAKE_C_COMPILER="aarch64-none-linux-gnu-gcc" \
+  #           -DCMAKE_CXX_COMPILER="aarch64-none-linux-gnu-g++" \
+  #           -DDNNL_TARGET_ARCH="AARCH64" \
+  #           -DCMAKE_C_FLAGS="-O3 -march=armv8-a+sve" \
+  #           -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a+sve" \
+  #           -DCMAKE_SYSTEM_NAME=Linux \
+  #           -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  #           -DCMAKE_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib
+  #         make -j -l 2.5
+  #         mkdir install
+  #         cmake --build . --target install
+  #         cd install
+  #         ls
+  #         cd ..
+  #         tar -zcf ./build_noble_arm64sve_gcc13.tar.gz ./install
+  #         echo "NOBLE_ARM64SVE_GCC13_RELEASE=$(pwd)/build_noble_arm64sve_gcc13.tar.gz" >> $GITHUB_ENV
+  #       continue-on-error: true
+  #     - name: Release config
+  #       run: |
+  #         echo "RELEASE_TAG=SHA-${GITHUB_SHA::8}" >> $GITHUB_ENV
+  #     - name: Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: |
+  #           ${{ env.NOBLE_ARM64SVE_GCC13_RELEASE }}
+  #         tag_name: ${{ env.RELEASE_TAG }}
+  #         token: ${{ secrets.REPO_TOKEN }}
